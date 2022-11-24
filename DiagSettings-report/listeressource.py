@@ -13,7 +13,7 @@ credential = AzureCliCredential()
 subscription_id = "1ddaf3cb-603f-4055-a51e-57d6d1d8fd09"
 
 
-def get_r_d():
+def get_microsoft_resource():
     try:
         url = "https://raw.githubusercontent.com/MicrosoftDocs/azure-docs/main/articles/azure-monitor/essentials/resource-logs-categories.md"
         r = requests.get(url)
@@ -38,7 +38,7 @@ def get_r_d():
     except Exception as e:
         print(f"Invalid URL or some error occured while making the GET request to the specified URL{e}")
 
-microsoft_list = get_r_d()
+microsoft_list = get_microsoft_resource()
 
 def check_category(r_id):
     rc=resource_client_m.diagnostic_settings_category.list(r_id)
@@ -69,15 +69,21 @@ print("-" * (column_width * 2))
 resource_client_m = MonitorManagementClient(credential, subscription_id)
 # print(f"il y a {len(list(r_list))}")
 l = []
-er =[]
+rl =[]
+
 for r in progressbar.progressbar(r_list):
     try:
         print(29 * "*")
         print(r.type)
         d = {}
-    
-        if (True if r.type in x else False for x in microsoft_list ):
-            print("supported")
+        dr = {}
+        dr['id'] = r.id
+        dr['name'] = r.name
+        dr['type'] = r.type
+        rl.append(dr)
+        # if (True for x in microsoft_list  if x in r.type):
+        if r.type in microsoft_list:
+            print("**SUPPORTED")
             d = resource_client_m.diagnostic_settings.list(r.id)
             for i in d:
                 # print(f"{i}\n")
@@ -89,7 +95,7 @@ for r in progressbar.progressbar(r_list):
                 l.append(d)
                 check_category(r.id)
         else:
-            print("notttttttttttttttttttttttttttttttttt")
+            print("**notttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt**")
         
     except Exception as e:
         print(e)
@@ -101,4 +107,11 @@ json_object = json.dumps(l, indent=4)
  
 # Writing to sample.json
 with open("sample.json", "w") as outfile:
+    outfile.write(json_object)
+
+# Serializing json
+json_object = json.dumps(rl, indent=4)
+ 
+# Writing to sample.json
+with open("rl.json", "w") as outfile:
     outfile.write(json_object)
